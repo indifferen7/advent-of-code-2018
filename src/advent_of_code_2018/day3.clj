@@ -38,7 +38,7 @@
        (frequencies)
        (reduce-kv
         (fn [acc k v]
-		  (if (> v 1) (inc acc) acc)) 0)))
+          (if (> v 1) (inc acc) acc)) 0)))
 
 ;solution second part
 (defn solve-second [input]

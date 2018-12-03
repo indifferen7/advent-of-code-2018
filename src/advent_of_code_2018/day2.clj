@@ -1,5 +1,7 @@
 (ns advent-of-code-2018.day2
-  (:require [advent-of-code-2018.utils :as utils]))
+  (:require [advent-of-code-2018.utils :as utils]
+            [clojure.set :as set]
+            [clojure.string :as string]))
 
 (def input (utils/file-rows->seq "day2input"))
 
@@ -8,33 +10,26 @@
       (set)
       (contains? val)))
 
-(defn twos-fn [freqs]
-  (if (map-has-value freqs 2) inc identity))
+(defn inc-if-eq [val freqs]
+  (if (map-has-value freqs val) inc identity))
 
-(defn threes-fn [freqs]
-  (if (map-has-value freqs 3) inc identity))
-
-(defn reducer-for-first [acc row]
+(defn reducer-fn [acc row]
   (let [freqs (frequencies row)]
-    {:twos ((twos-fn freqs) (:twos acc))
-     :threes ((threes-fn freqs) (:threes acc))}))
+    {:twos ((inc-if-eq 2 freqs) (:twos acc))
+     :threes ((inc-if-eq 3 freqs) (:threes acc))}))
 
-(defn solve-first []
+(defn solve-first [input]
   (let [{twos :twos
-         threes :threes} (reduce
-                          reducer-for-first
-                          {:twos 0
-                           :threes 0}
-                          input)]
+         threes :threes} (reduce reducer-fn {:twos 0 :threes 0} input)]
     (* twos threes)))
 
 (defn drop-nth [nth coll]
   (concat (take nth coll) (drop (inc nth) coll)))
 
-(defn solve-second []
+(defn solve-second [input]
   (loop [i 0
          all (map #(drop-nth i %) input)]
-    (let [code (get (clojure.set/map-invert (frequencies all)) 2)]
+    (let [code (get (set/map-invert (frequencies all)) 2)]
       (if (not (nil? code))
-        (clojure.string/join code)
+        (string/join code)
         (recur (inc i) (map #(drop-nth i %) input))))))
