@@ -4,19 +4,14 @@
 
 (def input (utils/file-rows->seq "day3input"))
 
-(defn to-int [c] (Character/digit c 10))
+(defn parse-pos [pos] (map #(Integer/parseInt %) (string/split pos #"[,:]")))
+(defn parse-size [size] (map #(Integer/parseInt %) (string/split size #"x")))
 
 (defn parse-id [id]
   (->> (drop 1 id)
        (map #(Character/digit % 10))
        (string/join)
        (Integer/parseInt)))
-
-(defn parse-pos [pos]
-  (map #(Integer/parseInt %) (string/split pos #"[,:]")))
-
-(defn parse-size [size]
-  (map #(Integer/parseInt %) (string/split size #"x")))
 
 (defn parse-row [row]
   (let [[id, _, pos, size] (string/split row #" ")]
@@ -28,29 +23,25 @@
   (let [{[offset-x offset-y] :pos [w h] :size} (parse-row row)]
     (for [x (range 0 w)
           y (range 0 h)]
-      [(+ offset-x x)
-       (+ offset-y y)])))
+      [(+ offset-x x) (+ offset-y y)])))
 
-(defn solve-first []
-  (let [all-pos (mapcat covered-inches input)
-        freq (frequencies all-pos)]
-    (reduce-kv
-     (fn [acc k v]
-       (if (> v 1)
-         (inc acc)
-         acc))
-     0
-     freq)))
+(defn non-overlap-inches [input]
+  (->> (mapcat covered-inches input)
+       (frequencies)
+       (filter #(= 1 (second %)))
+       (keys)
+       (set)))
 
-(defn solve-second []
-  (let [all-pos (mapcat covered-inches input)
-        freq (frequencies all-pos)
-        non-overlap-inches (set (keys (filter #(= 1 (second %)) freq)))]
-    (->> (filter
-          (fn [row]
-            (let [covered (set (covered-inches row))]
-              (if (every? non-overlap-inches covered)
-                true
-                false)))
-          input)
+;solution first part
+(defn solve-first [input]
+  (->> (mapcat covered-inches input)
+       (frequencies)
+       (reduce-kv
+        (fn [acc k v]
+		  (if (> v 1) (inc acc) acc)) 0)))
+
+;solution second part
+(defn solve-second [input]
+  (let [not-overlapping (non-overlap-inches input)]
+    (->> (filter #(every? not-overlapping (covered-inches %)) input)
          (map parse-row))))
